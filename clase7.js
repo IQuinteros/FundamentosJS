@@ -12,7 +12,8 @@ var Yuyu = {
     edad: 22,
 }
 
-function imprimirNombreMayusculasObjeto(persona){    // ACCEDER SOLO EL ATRIBUTO QUE INTERESA
+function imprimirNombreMayusculasObjeto(persona){   
+    var {nombre} = persona; // ACCEDER AL ATRIBUTO DEL OBJETO
     console.log(persona.nombre.toUpperCase());
 }
 
@@ -20,8 +21,14 @@ function imprimirNombreMayusculas({nombre}){    // ACCEDER SOLO EL ATRIBUTO QUE 
     console.log(nombre.toUpperCase());
 }
 
+function imprimirNombreYEdad({nombre, edad}){
+    console.log(`Hola, me llamo ${nombre} y tengo ${edad} años`);
+    // Hola, me llamo Ignacio y tengo 28 años
+}
 
 imprimirNombreMayusculas(Ignacio);
 imprimirNombreMayusculasObjeto(Yuyu);
 imprimirNombreMayusculas({nombre: "Pepito"});
-imprimirNombreMayusculas({error: "Error"});
+//imprimirNombreMayusculas({error: "Error"});
+
+imprimirNombreYEdad(Ignacio);
