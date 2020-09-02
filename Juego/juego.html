@@ -88,36 +88,198 @@
         animation-name: hideBtn;
         animation-duration: 0.5s;
         opacity: 0;
+        display: none;
+      }
+
+      *{
+        font-family: Arial, Helvetica, sans-serif;
       }
     </style>
   </head>
   <body>
     <div class="gameboard">
+      <!--Es importante el data-hola o data-color. Se motrará en el dataset del atributo-->
       <div id="celeste" class="color celeste left" data-color="celeste"></div>
       <div id="violeta" class="color violeta right" data-color="violeta"></div>
       <div id="naranja" class="color naranja left" data-color="naranja"></div>
       <div id="verde" class="color verde right" data-color="verde"></div>
       <button id="btnEmpezar" class="btn-start" onclick="empezarJuego()">Empezar a jugar!</button>
     </div>
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
     <script>
       const celeste = document.getElementById('celeste')
       const violeta = document.getElementById('violeta')
       const naranja = document.getElementById('naranja')
       const verde = document.getElementById('verde')
       const btnEmpezar = document.getElementById('btnEmpezar')
+      const ULTIMO_NIVEL = 10;
 
       class Juego {
         constructor() {
-          this.inicializar()
+          this.inicializar = this.inicializar.bind(this);
+          this.inicializar();
+          this.generarSecuencia();
+
+          setTimeout(() => this.siguienteNivel(), 500);
+        }
+
+        toggleBtnEmpezar(){
+          // Asignar clase css a la etiqueta
+
+          if(btnEmpezar.classList.contains('hide')){
+            btnEmpezar.classList.remove('hide')
+          }
+          else{
+            btnEmpezar.classList.add('hide')
+          }
         }
 
         inicializar() {
-          btnEmpezar.classList.add('hide')
+          this.toggleBtnEmpezar();
+
+          this.nivel = 1;
+          this.colores = {
+            celeste,
+            violeta,
+            naranja,  // Equivalente, al tener el mismo nombre
+            verde: verde // Equivalente
+          }
+
+          // Para que la función tenga siempre el Bind(this)
+          this.elegirColor = this.elegirColor.bind(this);
+          this.siguienteNivel = this.siguienteNivel.bind(this);
+          
         }
+
+        generarSecuencia(){
+          // Array
+
+          // Map no funciona cuando no hay valores definidos.
+          // Por eso es importante hacer "fill" para rellenar los valores
+          this.secuencia = new Array(ULTIMO_NIVEL).fill(0).map(n => Math.floor(Math.random() * 4));
+        }
+
+        siguienteNivel(){
+          this.subnivel = 0;
+          this.iluminarSecuencia();
+          this.agregarEventosClick();
+        }
+
+        transformarNumeroAColor(num){
+          switch(num){
+            case 0: 
+              return 'celeste';
+            case 1:
+              return 'violeta';
+            case 2:
+              return 'naranja';
+            case 3:
+              return 'verde';
+          }
+        }
+
+        transformarColorANumero(color){
+          switch(color){
+            case 'celeste': 
+              return 0;
+            case 'violeta':
+              return 1;
+            case 'naranja':
+              return 2;
+            case 'verde':
+              return 3;
+          }
+        }
+
+        apagarColor(color){
+          this.colores[color].classList.remove('light');
+        }
+
+        iluminarColor(color){
+          this.colores[color].classList.add('light');
+          setTimeout(() => this.apagarColor(color), 400);
+        }
+
+        iluminarSecuencia(){
+          for(let i = 0; i < this.nivel; i++){
+            let color = this.transformarNumeroAColor(this.secuencia[i]);
+
+            setTimeout(() => this.iluminarColor(color), 1000 * i);
+            
+          }
+        }
+
+        agregarEventosClick(){
+          // bind(this), es para nombrar al objeto Juego, como this
+          // en la función "elegirColor". Se hizo en inicializar()
+
+          this.colores.celeste.addEventListener('click', this.elegirColor);
+          this.colores.verde.addEventListener('click', this.elegirColor);
+          this.colores.violeta.addEventListener('click', this.elegirColor);
+          this.colores.naranja.addEventListener('click', this.elegirColor);
+        }
+
+        eliminarEventosClick(){
+          // bind(this), es para nombrar al objeto Juego, como this
+          // en la función "elegirColor". Se hizo en inicializar()
+
+          this.colores.celeste.removeEventListener('click', this.elegirColor);
+          this.colores.verde.removeEventListener('click', this.elegirColor);
+          this.colores.violeta.removeEventListener('click', this.elegirColor);
+          this.colores.naranja.removeEventListener('click', this.elegirColor);
+        }
+
+        ganoElJuego(){
+          swal('Felicitaciones!', 'Has ganado el juego', 'success')
+            .then(()=>{
+              this.inicializar();
+            });
+        }
+
+        perdioElJuego(){
+          swal('Ouch!', 'Has perdido esta vez. Vuelve a intentarlo! Yo sé que puedes', 'error')
+            .then(() => {
+              this.eliminarEventosClick();
+              this.inicializar();
+            });
+        }
+
+        elegirColor(ev){
+          // this, ahora sería el botón. No el juego; a no ser que tenga un "bind()"
+          console.log(ev);
+          const nombreColor = ev.target.dataset.color;
+          const numeroColor = this.transformarColorANumero(nombreColor);
+
+          this.iluminarColor(nombreColor);
+
+          if(numeroColor === this.secuencia[this.subnivel]){
+            this.subnivel++;
+
+            if(this.subnivel === this.nivel){
+              this.nivel++;
+              this.eliminarEventosClick();
+
+              if(this.nivel === ULTIMO_NIVEL + 1){
+                this.ganoElJuego();
+              }else{
+                // En un setTimeout, el encargado es Window
+                // Por esto, this, sería "Window", si es que no
+                // le colocamos un bind
+                setTimeout(this.siguienteNivel, 1500);
+              }
+            }
+          }
+          else{
+            this.perdioElJuego();
+          }
+        }
+        
       }
 
       function empezarJuego() {
-        var juego = new Juego()
+
+        // En window, por debug
+        window.juego = new Juego()
       }
     </script>
   </body>
